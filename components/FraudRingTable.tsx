@@ -33,12 +33,8 @@ export default function FraudRingTable({ rings }: FraudRingTableProps) {
             {rings.map((ring) => (
               <tr key={ring.ring_id} className="border-b hover:bg-gray-50">
                 <td className="p-3 font-mono">{ring.ring_id}</td>
-                <td className="p-3">
-                  <span className={`px-2 py-1 rounded text-xs font-semibold ${getPatternBadge(ring.pattern_type)}`}>
-                    {ring.pattern_type}
-                  </span>
-                </td>
-                <td className="p-3 text-sm">{ring.member_accounts.join(", ")}</td>
+                <td className="p-3">{ring.pattern_type}</td>
+                <td className="p-3">{ring.member_accounts.join(", ")}</td>
                 <td className="p-3">
                   <span className={`font-semibold ${ring.risk_score > 70 ? "text-red-600" : "text-yellow-600"}`}>
                     {ring.risk_score.toFixed(1)}

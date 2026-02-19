@@ -1,18 +1,17 @@
-// Locked Data Contract - MuleRift Analysis Results
-// All keys must be snake_case
+// MuleRift Data Contract - TypeScript Interfaces
 
 export interface SuspiciousAccount {
   account_id: string;
-  suspicion_score: number; // float (0-100) - weighted average of detected patterns
+  suspicion_score: number;
   detected_patterns: string[];
-  ring_id: string;
+  ring_id: string | null;
 }
 
 export interface FraudRing {
-  ring_id: string; // format: 'RING_00X'
+  ring_id: string;
   member_accounts: string[];
-  pattern_type: 'cycle' | 'smurfing' | 'shell';
-  risk_score: number; // float (0-100)
+  pattern_type: string;
+  risk_score: number;
 }
 
 export interface AnalysisResult {
@@ -26,13 +25,12 @@ export interface AnalysisResult {
   };
 }
 
-// Extended types for internal use (graph visualization)
+// Graph visualization types
 export interface GraphNode {
   id: string;
   label: string;
-  suspicion_score: number;
-  detected_patterns: string[];
-  ring_id: string;
+  suspicion_score?: number;
+  ring_id?: string | null;
 }
 
 export interface GraphEdge {

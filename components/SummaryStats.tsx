@@ -21,12 +21,12 @@ export default function SummaryStats({ summary }: SummaryStatsProps) {
         <p className="text-3xl font-bold text-red-600">{summary.suspicious_accounts_flagged}</p>
       </div>
       <div className="bg-white rounded-lg shadow p-6">
-        <p className="text-gray-600 text-sm">Fraud Rings</p>
+        <p className="text-gray-600 text-sm">Rings Detected</p>
         <p className="text-3xl font-bold text-orange-600">{summary.fraud_rings_detected}</p>
       </div>
       <div className="bg-white rounded-lg shadow p-6">
         <p className="text-gray-600 text-sm">Processing Time</p>
-        <p className="text-3xl font-bold text-green-600">{summary.processing_time_seconds.toFixed(3)}s</p>
+        <p className="text-3xl font-bold text-blue-600">{summary.processing_time_seconds.toFixed(3)}s</p>
       </div>
     </div>
   );

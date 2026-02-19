@@ -31,47 +31,23 @@ export default function AccountModal({ account, onClose }: AccountModalProps) {
               </p>
             </div>
           </div>
-
-          {account.ring_id && (
-            <div>
-              <p className="text-sm text-gray-600 mb-2">Ring Membership</p>
-              <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-mono">
-                {account.ring_id}
-              </span>
-            </div>
-          )}
-
-          {account.detected_patterns.length > 0 && (
-            <div>
-              <p className="text-sm text-gray-600 mb-2">Detected Patterns</p>
-              <div className="space-y-2">
-                {account.detected_patterns.map((pattern, idx) => {
-                  const [patternType, value] = pattern.split(':');
-                  const bgColor = patternType === 'cycle_participation' ? 'bg-red-50' : 'bg-yellow-50';
-                  const textColor = patternType === 'cycle_participation' ? 'text-red-800' : 'text-yellow-800';
-                  
-                  return (
-                    <div key={idx} className={`${bgColor} p-2 rounded text-sm`}>
-                      <p className={`font-semibold ${textColor}`}>
-                        {patternType.replace('_', ' ').toUpperCase()}
-                      </p>
-                      <p className="text-gray-600 text-xs">
-                        {value ? `Count: ${value}` : 'Detected'}
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          <div className="bg-blue-50 p-3 rounded">
-            <p className="text-xs text-blue-800 font-semibold mb-1">SCORING METHOD</p>
-            <p className="text-xs text-gray-600">
-              Suspicion score calculated as weighted average:
-              <br />• Cycle participation: 60% weight
-              <br />• Temporal velocity: 40% weight
+          <div>
+            <p className="text-sm text-gray-600">Suspicion Score</p>
+            <p className={`text-2xl font-bold ${account.suspicion_score > 50 ? "text-red-600" : "text-green-600"}`}>
+              {account.suspicion_score}
             </p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600">Ring ID</p>
+            <p className="font-mono">{account.ring_id || "None"}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600">Patterns Detected</p>
+            <ul className="list-disc list-inside">
+              {account.detected_patterns.map((pattern, idx) => (
+                <li key={idx} className="text-sm">{pattern}</li>
+              ))}
+            </ul>
           </div>
         </div>
       </div>
