@@ -107,7 +107,7 @@ def group_rings_by_pattern(results):
     for shell_group in results.get('shell_groups', []):
         ring_id = len(all_rings)
         all_rings.append(shell_group)
-        pattern_map[ring_id] = 'shell'
+        pattern_map[ring_id] = 'shell_layering'
     
     # Merge overlapping rings
     merged_rings = merge_overlapping_rings(all_rings)
@@ -121,13 +121,13 @@ def group_rings_by_pattern(results):
             if set(orig_ring) & merged_ring:  # If overlap
                 contributing_patterns.add(pattern_map[orig_idx])
         
-        # Priority: cycle > smurfing > shell
+        # Priority: cycle > smurfing > shell_layering
         if 'cycle' in contributing_patterns:
             merged_pattern_map[idx] = 'cycle'
         elif 'smurfing' in contributing_patterns:
             merged_pattern_map[idx] = 'smurfing'
         else:
-            merged_pattern_map[idx] = 'shell'
+            merged_pattern_map[idx] = 'shell_layering'
     
     # Apply deterministic sorting
     sorted_rings = deterministic_sort_rings(merged_rings)

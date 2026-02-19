@@ -106,37 +106,45 @@ def main():
         members = ring_info['members']
         pattern_type = ring_info['pattern_type']
         
-        # Calculate risk score from all members
+        # Calculate risk score as simple average of member suspicion scores
         member_scores = []
         for account_id in members:
-            detected_patterns = []
-            
-            if account_id in results['cycle_nodes']:
-                pattern_name = results['cycle_metadata'].get(account_id, 'cycle')
-                detected_patterns.append(pattern_name)
-            
-            if account_id in results['smurfing_nodes']:
-                pattern_name = results['smurfing_metadata'].get(account_id, 'smurfing')
-                detected_patterns.append(pattern_name)
-            
-            if account_id in results['shell_nodes']:
-                pattern_name = results['shell_metadata'].get(account_id, 'shell')
-                detected_patterns.append(pattern_name)
-            
-            if account_id in results['velocity_nodes']:
-                pattern_name = results['velocity_metadata'].get(account_id, 'high_velocity')
-                detected_patterns.append(pattern_name)
-            
-            score = calculate_suspicion_score(detected_patterns)
-            member_scores.append(score)
+            # Find this account's suspicion_score from suspicious_accounts list
+            account_data = next((acc for acc in suspicious_accounts if acc['account_id'] == account_id), None)
+            if account_data:
+                member_scores.append(account_data['suspicion_score'])
+            else:
+                # If not in suspicious_accounts, calculate score
+                detected_patterns = []
+                
+                if account_id in results['cycle_nodes']:
+                    pattern_name = results['cycle_metadata'].get(account_id, 'cycle')
+                    detected_patterns.append(pattern_name)
+                
+                if account_id in results['smurfing_nodes']:
+                    pattern_name = results['smurfing_metadata'].get(account_id, 'smurfing')
+                    detected_patterns.append(pattern_name)
+                
+                if account_id in results['shell_nodes']:
+                    pattern_name = results['shell_metadata'].get(account_id, 'shell')
+                    detected_patterns.append(pattern_name)
+                
+                if account_id in results['velocity_nodes']:
+                    pattern_name = results['velocity_metadata'].get(account_id, 'high_velocity')
+                    detected_patterns.append(pattern_name)
+                
+                score = calculate_suspicion_score(detected_patterns)
+                member_scores.append(score)
         
-        risk_score = sum(member_scores) / len(member_scores) if member_scores else 0
+        # Simple average: sum(member_scores) / len(member_scores)
+        # No multipliers, no structural weighting, no randomness
+        risk_score = round(sum(member_scores) / len(member_scores), 1) if member_scores else 0.0
         
         fraud_rings_output.append({
             "ring_id": ring_id,
             "member_accounts": members,
             "pattern_type": pattern_type,
-            "risk_score": float(round(risk_score, 1))
+            "risk_score": float(risk_score)
         })
     
     processing_time = time.time() - start_time

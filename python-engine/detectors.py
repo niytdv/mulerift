@@ -277,18 +277,63 @@ def detect_velocity(G, pass_through_threshold=0.85, avg_time_hours=24):
     
     return velocity_nodes, velocity_metadata
 
-def detect_peel_chains(G, min_length=3, time_window_hours=12):
+def is_ghost_account(G, node, df, max_transactions=3):
     """
-    Detect peel chains (shell/layering) with strict amount decay.
+    Check if an account is a 'Ghost Account' (shell with no outside life).
     
     Criteria:
-    - Path length >= 3
-    - Strict amount decay (each hop < previous)
-    - Time between hops < 12 hours
+    - total_transactions <= 3
+    - Not active outside detected chains
+    
+    Returns True if account is a ghost (potential shell)
+    """
+    # Count total transactions involving this node
+    node_txns = df[(df['sender_id'] == node) | (df['receiver_id'] == node)]
+    total_transactions = len(node_txns)
+    
+    # Ghost accounts have very few transactions
+    if total_transactions > max_transactions:
+        return False
+    
+    return True
+
+def calculate_intermediate_velocity(G, node):
+    """
+    Calculate velocity window for intermediate node.
+    
+    velocity_window = outgoing_time - incoming_time
+    
+    Returns average velocity in hours
+    """
+    in_times = [G[pred][node]['timestamp'] for pred in G.predecessors(node)]
+    out_times = [G[node][succ]['timestamp'] for succ in G.successors(node)]
+    
+    if not in_times or not out_times:
+        return None
+    
+    # Calculate time between first incoming and first outgoing
+    min_in = min(in_times)
+    min_out = min(out_times)
+    
+    if min_out <= min_in:
+        return 0
+    
+    velocity_hours = (min_out - min_in).total_seconds() / 3600
+    return velocity_hours
+
+def detect_peel_chains(G, df, min_length=3, time_window_hours=72, max_velocity_hours=24):
+    """
+    Detect shell/layering chains with strict temporal and behavioral criteria.
+    
+    Refined Criteria:
+    1. Temporal Chain: max_timestamp - min_timestamp <= 72h
+    2. Intermediate Velocity: velocity_window <= 24h (funds pass quickly)
+    3. Ghost Account Filter: total_transactions <= 3, no outside life
+    4. Strict amount decay (each hop < previous)
     
     Returns:
-        peel_nodes: set of nodes in peel chains
-        peel_groups: list of peel chain paths
+        peel_nodes: set of nodes in valid shell chains
+        peel_groups: list of valid shell chain paths
         peel_metadata: dict mapping account_id to pattern description
     """
     peel_nodes = set()
@@ -310,8 +355,24 @@ def detect_peel_chains(G, min_length=3, time_window_hours=12):
                 if len(path) < min_length:
                     continue
                 
-                # Check amount decay and time constraints
-                is_valid_peel = True
+                # 1. Check temporal chain constraint (72 hours)
+                timestamps = []
+                for i in range(len(path) - 1):
+                    src = path[i]
+                    dst = path[i + 1]
+                    edge_data = G[src][dst]
+                    timestamps.append(edge_data['timestamp'])
+                
+                if not timestamps:
+                    continue
+                
+                time_span = max(timestamps) - min(timestamps)
+                if time_span > timedelta(hours=time_window_hours):
+                    # Chain spans more than 72h - considered 'Normal Business'
+                    continue
+                
+                # 2. Check intermediate node velocity
+                valid_chain = True
                 prev_amount = None
                 prev_time = None
                 
@@ -325,26 +386,45 @@ def detect_peel_chains(G, min_length=3, time_window_hours=12):
                     
                     # Check strict amount decay
                     if prev_amount is not None and amount >= prev_amount:
-                        is_valid_peel = False
+                        valid_chain = False
                         break
                     
-                    # Check time window
-                    if prev_time is not None:
-                        time_diff = (timestamp - prev_time).total_seconds() / 3600
-                        if time_diff >= time_window_hours:
-                            is_valid_peel = False
+                    # Check intermediate node velocity (for nodes in the middle)
+                    if i > 0 and i < len(path) - 2:  # Intermediate nodes only
+                        node = path[i]
+                        velocity = calculate_intermediate_velocity(G, node)
+                        
+                        if velocity is not None and velocity > max_velocity_hours:
+                            # Node 'parks' money for too long - less suspicious
+                            valid_chain = False
                             break
                     
                     prev_amount = amount
                     prev_time = timestamp
                 
-                if is_valid_peel:
-                    peel_nodes.update(path)
-                    peel_groups.append(path)
-                    
-                    # Add metadata
-                    for node in path:
-                        peel_metadata[node] = f"shell_hop_{len(path)}"
+                if not valid_chain:
+                    continue
+                
+                # 3. Ghost Account Activity Filter
+                # Check if intermediate nodes are ghost accounts
+                ghost_chain = True
+                for i in range(1, len(path) - 1):  # Check intermediate nodes only
+                    node = path[i]
+                    if not is_ghost_account(G, node, df):
+                        # Account has outside life - not a shell
+                        ghost_chain = False
+                        break
+                
+                if not ghost_chain:
+                    continue
+                
+                # Valid shell chain found
+                peel_nodes.update(path)
+                peel_groups.append(path)
+                
+                # Add metadata
+                for node in path:
+                    peel_metadata[node] = f"shell_hop_{len(path)}"
     
     return peel_nodes, peel_groups, peel_metadata
 
@@ -366,7 +446,7 @@ def detect_all_patterns(G, df):
     smurfing_metadata = {**smurfing_fan_in_metadata, **smurfing_fan_out_metadata}
     
     velocity_nodes, velocity_metadata = detect_velocity(G)
-    peel_nodes, peel_groups, peel_metadata = detect_peel_chains(G)
+    peel_nodes, peel_groups, peel_metadata = detect_peel_chains(G, df)
     
     return {
         "cycle_nodes": cycle_nodes,
