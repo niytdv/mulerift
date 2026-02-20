@@ -7,7 +7,18 @@ export async function analyzeCsv(csvPath: string): Promise<AnalysisResult> {
     const pythonScript = path.join(process.cwd(), 'python-engine', 'main.py');
     // Use python3 for production environments (Render, etc.)
     const pythonCommand = process.env.NODE_ENV === 'production' ? 'python3' : 'python';
-    const pythonProcess = spawn(pythonCommand, [pythonScript, csvPath]);
+    
+    // Set PYTHONPATH to include both the packages and the python-engine directory
+    const pythonPath = process.env.NODE_ENV === 'production'
+      ? `${path.join(process.cwd(), '.python_packages')}:${path.join(process.cwd(), 'python-engine')}`
+      : path.join(process.cwd(), 'python-engine');
+    
+    const pythonProcess = spawn(pythonCommand, [pythonScript, csvPath], {
+      env: {
+        ...process.env,
+        PYTHONPATH: pythonPath,
+      },
+    });
 
     let stdout = '';
     let stderr = '';
