@@ -6,10 +6,10 @@ services:
     plan: free
     buildCommand: |
       # Create a local directory for Python packages
-      mkdir -p /opt/render/project/src/.python_packages
+      mkdir -p .python_packages
       # Install Python dependencies to project directory
       python3 -m pip install --upgrade pip
-      python3 -m pip install --target=/opt/render/project/src/.python_packages -r python-engine/requirements.txt
+      python3 -m pip install --target=.python_packages -r python-engine/requirements.txt
       # Install Node dependencies and build Next.js
       npm ci
       npm run build
@@ -24,5 +24,5 @@ services:
       - key: GROQ_API_KEY
         sync: false
       - key: PYTHONPATH
-        value: /opt/render/project/src/.python_packages:/opt/render/project/src/python-engine
+        value: .python_packages:python-engine
     healthCheckPath: /api/health
