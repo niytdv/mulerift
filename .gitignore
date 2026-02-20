@@ -12,3 +12,5 @@ build
 *.json
 !package.json
 !tsconfig.json
+.python_packages
+tmp
