@@ -355,13 +355,6 @@ Click "DOWNLOAD JSON EXPORT" to save analysis results:
 - **Session Storage**: Results stored in browser session
 - **No Authentication**: Public access (demo purposes)
 
-## 👥 Team Members
-
-- **Developer**: [Your Name]
-- **Role**: Full-Stack Developer & ML Engineer
-- **Contact**: [Your Email]
-- **GitHub**: [Your GitHub Profile]
-
 ## 📚 Documentation
 
 Additional documentation available in `/docs`:
