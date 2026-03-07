@@ -1,0 +1,14 @@
+[phases.setup]
+nixPkgs = ["nodejs_20", "python311", "python311Packages.networkx", "python311Packages.pandas", "python311Packages.python-dateutil", "python311Packages.numpy", "python311Packages.pytz", "python311Packages.six"]
+
+[phases.install]
+cmds = ["npm ci --prefer-offline --no-audit"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "npm start"
+
+[variables]
+PYTHONPATH = "/nix/var/nix/profiles/default/lib/python3.11/site-packages"

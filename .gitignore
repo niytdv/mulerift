@@ -1,0 +1,22 @@
+node_modules
+.next
+.env
+.env.local
+.env*.local
+__pycache__
+*.pyc
+.DS_Store
+out
+dist
+build
+.python_packages
+tmp
+
+# Keep necessary JSON files
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!railway.json
+
+.vercel

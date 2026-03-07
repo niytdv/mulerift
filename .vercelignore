@@ -1,0 +1,14 @@
+# Vercel ignore - exclude unnecessary files
+node_modules
+.next
+.env.local
+.env*.local
+tmp
+*.log
+.DS_Store
+python-engine/__pycache__
+*.pyc
+.vscode
+.idea
+test_*.csv
+vid/WhatsApp*

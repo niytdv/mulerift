@@ -1,0 +1,8 @@
+# Ignore unnecessary files during Railway deployment
+*.md
+!README.md
+!DEPLOYMENT_CHECKLIST.md
+tmp/
+.vscode/
+test_*.csv
+data.csv
